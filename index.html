@@ -203,10 +203,10 @@
   @media (min-width: 860px){
     #map{height:100%; aspect-ratio:auto; flex:1 1 auto; min-height:0; order:2;}
   }
-  .leaflet-popup{max-width: 78vw;}
+  .leaflet-popup{max-width: 82vw;}
   .leaflet-popup-content-wrapper{border-radius:12px;}
-  .leaflet-popup-content{margin:13px 26px 13px 14px !important; width:auto !important; max-width:240px;}
-  .popup-inner{font-family:inherit;}
+  .leaflet-popup-content{margin:13px 26px 13px 14px !important;}
+  .popup-inner{font-family:inherit; min-width:190px; max-width:230px;}
   .popup-inner .p-badge{
     display:inline-block; font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; margin-bottom:6px;
   }
@@ -885,7 +885,11 @@ POOLS.forEach(p => {
       <p>${p.note}</p>
       <a class="src-link" href="${p.url}" target="_blank" rel="noopener">出典を見る →</a>
     </div>
-  `);
+  `, {
+    minWidth: 220,
+    maxWidth: 260,
+    autoPan: false
+  });
   marker.addTo(map);
   markers[p.id] = marker;
 });
