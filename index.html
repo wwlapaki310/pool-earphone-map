@@ -292,10 +292,59 @@
   }
   .gear-title{font-size:21px; font-weight:700; margin:6px 0 4px; line-height:1.4; color:var(--deep);}
   .gear-sub{font-size:13px; color:var(--ink-soft); line-height:1.6; margin:0 0 18px;}
-  .gear-card{
-    background:var(--card); border:1px solid var(--line); border-radius:16px;
-    padding:20px; margin-bottom:16px;
+  .gear-section-label{
+    font-size:11px; font-weight:700; color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase;
+    margin: 22px 0 10px; padding-left:2px;
   }
+  .gear-section-label:first-of-type{margin-top:0;}
+
+  .rec-card{
+    position:relative;
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    overflow:hidden; margin-bottom:16px;
+  }
+  .rec-type-badge{
+    position:absolute; top:12px; left:12px; z-index:2;
+    font-size:10.5px; font-weight:700; padding:5px 11px; border-radius:999px;
+    background:rgba(255,255,255,0.92); backdrop-filter: blur(2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .rec-type-badge.type-gear{color:var(--deep2);}
+  .rec-type-badge.type-video{color:var(--no);}
+  .rec-type-badge.type-book{color:var(--amber);}
+
+  .rec-image{
+    display:block; width:100%; height:200px; object-fit:contain;
+    background: linear-gradient(180deg, #f4f9f9, #e9f2f2);
+    padding: 10px 0;
+  }
+  .rec-thumb-link{position:relative; display:block;}
+  .rec-thumb-link .rec-image{object-fit:cover; height:180px; padding:0;}
+  .play-badge{
+    position:absolute; bottom:10px; right:10px;
+    background:rgba(11,45,60,0.82); color:#fff; font-size:11px; font-weight:700;
+    padding:5px 10px; border-radius:999px;
+  }
+  .rec-body{padding:18px;}
+  .rec-desc{font-size:12.5px; color:var(--ink-soft); line-height:1.65; margin:8px 0 14px;}
+
+  .rec-card-book .rec-body{display:none;}
+  .rec-book-row{display:flex; gap:14px; padding:16px; align-items:flex-start;}
+  .rec-book-cover{
+    width:84px; flex:0 0 84px; border-radius:6px; object-fit:cover;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18); background:var(--surface);
+  }
+  .rec-book-cover-placeholder{
+    width:84px; height:118px; flex:0 0 84px; border-radius:6px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+    background: linear-gradient(150deg, #2f4a5a, #0b2d3c);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:26px;
+  }
+  .rec-book-info{flex:1; min-width:0;}
+  .rec-book-info .gear-name{font-size:14.5px; margin-bottom:6px;}
+  .rec-book-info .rec-desc{margin:6px 0 12px;}
+
   .gear-badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
   .gear-badge{
     font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:999px;
@@ -315,18 +364,19 @@
   .gear-cta{
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; background: linear-gradient(120deg, var(--amber), #d97f2b);
-    color:#fff; font-weight:700; font-size:15px;
-    padding:14px; border-radius:12px; text-decoration:none;
+    color:#fff; font-weight:700; font-size:14px;
+    padding:12px; border-radius:12px; text-decoration:none;
     box-shadow: 0 4px 14px rgba(224,138,60,0.35);
     border:none; cursor:pointer;
   }
+  .gear-cta.type-video-cta{background: linear-gradient(120deg, var(--no), #93312a); box-shadow: 0 4px 14px rgba(179,71,63,0.3);}
   .gear-cta:active{transform: scale(0.98);}
   .gear-cta .arrow{font-size:18px;}
   .gear-why{margin-top:20px;}
   .gear-why h4{font-size:13px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin:0 0 8px;}
   .gear-why ul{margin:0; padding-left:18px; font-size:13px; line-height:1.8; color:var(--ink);}
   .gear-disclosure{
-    font-size:10.5px; color:var(--ink-soft); text-align:center; margin-top:14px; line-height:1.6;
+    font-size:10.5px; color:var(--ink-soft); text-align:center; margin-top:8px; line-height:1.6;
   }
 
   ::-webkit-scrollbar{width:7px;}
@@ -350,7 +400,7 @@
 
   <nav class="tabbar">
     <button class="tab-btn active" data-view="view-map" type="button"><span class="ico">🗺️</span>マップ</button>
-    <button class="tab-btn" data-view="view-gear" type="button"><span class="ico">🎧</span>おすすめギア</button>
+    <button class="tab-btn" data-view="view-gear" type="button"><span class="ico">🔗</span>おすすめリンク</button>
   </nav>
 
   <div class="views">
@@ -433,42 +483,144 @@
 
     <div class="view" id="view-gear">
       <div class="gear-wrap">
-        <div class="gear-eyebrow">Recommended Gear</div>
-        <h2 class="gear-title">このマップを使うなら、この1台</h2>
-        <p class="gear-sub">江東区の施設やTAC茅ヶ崎、セントラルスポーツ自社クラブで「OK」の条件（骨伝導・完全防水・内蔵メモリ再生）にそのまま当てはまる代表的なモデルです。</p>
+        <div class="gear-eyebrow">Recommended Links</div>
+        <h2 class="gear-title">スイマーにおすすめのリンク集</h2>
+        <p class="gear-sub">このマップと一緒に役立つギア・動画・書籍をまとめました。</p>
 
-        <div class="gear-card">
-          <div class="gear-badge-row">
-            <span class="gear-badge">骨伝導・耳を塞がない</span>
-            <span class="gear-badge">IP68防塵防水</span>
-            <span class="gear-badge amber">VGP2026受賞</span>
+        <div class="gear-section-label">🎧 ギア</div>
+
+        <!-- ITEM: GEAR -->
+        <div class="rec-card">
+          <div class="rec-type-badge type-gear">🎧 ギア</div>
+          <img class="rec-image" src="https://jp.shokz.com/cdn/shop/files/OpenSwimPro-Red_8cb61c81-5a2c-4b3a-a06f-cd057b12bc15.webp?v=1715234171" alt="Shokz OpenSwim Pro 骨伝導イヤホン レッド" loading="lazy">
+          <div class="rec-body">
+            <div class="gear-badge-row">
+              <span class="gear-badge">骨伝導・耳を塞がない</span>
+              <span class="gear-badge">IP68防塵防水</span>
+              <span class="gear-badge amber">VGP2026受賞</span>
+            </div>
+            <div class="gear-name">Shokz OpenSwim Pro<br>骨伝導イヤホン オープンイヤーヘッドホン<br>スイミング用 Bluetooth IP68防塵防水（レッド）</div>
+
+            <div class="spec-grid">
+              <div class="spec-item"><div class="k">再生方式</div><div class="v">骨伝導 / 耳を塞がない</div></div>
+              <div class="spec-item"><div class="k">防水規格</div><div class="v">IP68防塵防水</div></div>
+              <div class="spec-item"><div class="k">内蔵メモリ</div><div class="v">32GB（スマホ不要で再生）</div></div>
+              <div class="spec-item"><div class="k">接続</div><div class="v">Bluetooth 5.4 / 自動ペアリング</div></div>
+              <div class="spec-item"><div class="k">連続再生</div><div class="v">最大9時間</div></div>
+              <div class="spec-item"><div class="k">認証</div><div class="v">技適認証済み・マイク付き</div></div>
+            </div>
+
+            <a class="gear-cta" href="https://amzn.to/4g5CUnQ" target="_blank" rel="nofollow sponsored noopener">
+              Amazonで見る <span class="arrow">→</span>
+            </a>
+
+            <div class="gear-why">
+              <h4>なぜこのマップと相性がいいか</h4>
+              <ul>
+                <li>江東区健康スポーツ公社の解禁条件「骨伝導式・完全防水・本体内蔵メモリ」にそのまま合致</li>
+                <li>スマホを持ち込まなくていいので、多くの施設の「携帯電話持込禁止」ルールと衝突しにくい</li>
+                <li>耳を塞がないので監視員の指示や周囲の音が聞こえ、安全面でも施設側に説明しやすい</li>
+              </ul>
+            </div>
           </div>
-          <div class="gear-name">Shokz OpenSwim Pro<br>骨伝導イヤホン オープンイヤーヘッドホン<br>スイミング用 Bluetooth IP68防塵防水（レッド）</div>
-
-          <div class="spec-grid">
-            <div class="spec-item"><div class="k">再生方式</div><div class="v">骨伝導 / 耳を塞がない</div></div>
-            <div class="spec-item"><div class="k">防水規格</div><div class="v">IP68防塵防水</div></div>
-            <div class="spec-item"><div class="k">内蔵メモリ</div><div class="v">32GB（スマホ不要で再生）</div></div>
-            <div class="spec-item"><div class="k">接続</div><div class="v">Bluetooth 5.4 / 自動ペアリング</div></div>
-            <div class="spec-item"><div class="k">連続再生</div><div class="v">最大9時間</div></div>
-            <div class="spec-item"><div class="k">認証</div><div class="v">技適認証済み・マイク付き</div></div>
-          </div>
-
-          <a class="gear-cta" href="https://amzn.to/4g5CUnQ" target="_blank" rel="nofollow sponsored noopener">
-            Amazonで見る <span class="arrow">→</span>
-          </a>
-
-          <div class="gear-why">
-            <h4>なぜこのマップと相性がいいか</h4>
-            <ul>
-              <li>江東区健康スポーツ公社の解禁条件「骨伝導式・完全防水・本体内蔵メモリ」にそのまま合致</li>
-              <li>スマホを持ち込まなくていいので、多くの施設の「携帯電話持込禁止」ルールと衝突しにくい</li>
-              <li>耳を塞がないので監視員の指示や周囲の音が聞こえ、安全面でも施設側に説明しやすい</li>
-            </ul>
-          </div>
-
-          <div class="gear-disclosure">本ページはAmazonアソシエイト・プログラムを含むアフィリエイトリンクを使用しています。</div>
         </div>
+
+        <div class="gear-section-label">🎥 動画</div>
+
+        <!-- ITEM: VIDEO -->
+        <div class="rec-card">
+          <div class="rec-type-badge type-video">🎥 動画</div>
+          <a href="https://youtu.be/iHt_EEXA-04" target="_blank" rel="noopener" class="rec-thumb-link">
+            <img class="rec-image" src="https://img.youtube.com/vi/iHt_EEXA-04/hqdefault.jpg" alt="クロールが速くなるための3つのポイント" loading="lazy">
+            <span class="play-badge">▶ 再生</span>
+          </a>
+          <div class="rec-body">
+            <div class="gear-name">クロールが速くなるための3つのポイントを水泳自由形元日本代表の松本弥生が徹底解説！</div>
+            <p class="rec-desc">元日本代表スイマーがクロールのフォーム改善ポイントを実演つきで解説する動画。速く泳ぎたい人向けの実践的な内容です。</p>
+            <a class="gear-cta type-video-cta" href="https://youtu.be/iHt_EEXA-04" target="_blank" rel="noopener">
+              YouTubeで見る <span class="arrow">→</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="gear-section-label">📖 書籍</div>
+
+        <!-- ITEM: BOOK 1 -->
+        <div class="rec-card rec-card-book">
+          <div class="rec-type-badge type-book">📖 書籍</div>
+          <div class="rec-book-row">
+            <img class="rec-book-cover" src="https://kanki-pub.co.jp/wp/wp-content/uploads/2023/11/9784761276232-scaled.jpg" alt="子どもに必要な能力はすべて水泳で身につく" loading="lazy">
+            <div class="rec-book-info">
+              <div class="gear-name">子どもに必要な能力は<br>すべて水泳で身につく</div>
+              <p class="rec-desc">水泳教育者による、子どもの自己肯定感・集中力を育む水泳の効用と、親子で楽しむ水慣れ〜クロール習得法を解説。</p>
+              <a class="gear-cta" href="https://amzn.to/4zeUIpb" target="_blank" rel="nofollow sponsored noopener">
+                Amazonで見る <span class="arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ITEM: BOOK 2 -->
+        <div class="rec-card rec-card-book">
+          <div class="rec-type-badge type-book">📖 書籍</div>
+          <div class="rec-book-row">
+            <img class="rec-book-cover" src="https://images.bbm-japan.com/media/article/37060/images/main_d556f180f4f08e6ade0bbb5189bee5b5.jpg" alt="食べて速くなる！スイマーの栄養と食事" loading="lazy">
+            <div class="rec-book-info">
+              <div class="gear-name">食べて速くなる！<br>スイマーの栄養と食事</div>
+              <p class="rec-desc">ジュニアからマスターズまで、スイマーのための栄養学と食事の教科書。試合前日の食事や貧血予防など実践編も充実。</p>
+              <a class="gear-cta" href="https://amzn.to/4wj9KHX" target="_blank" rel="nofollow sponsored noopener">
+                Amazonで見る <span class="arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ITEM: BOOK 3 -->
+        <div class="rec-card rec-card-book">
+          <div class="rec-type-badge type-book">📖 書籍</div>
+          <div class="rec-book-row">
+            <img class="rec-book-cover" src="https://c.bookwalker.jp/3272842/t_700x780.jpg" alt="マンガでたのしくわかる！水泳" loading="lazy">
+            <div class="rec-book-info">
+              <div class="gear-name">マンガでたのしくわかる！<br>水泳</div>
+              <p class="rec-desc">オールカラーのマンガとイラスト図解で水泳の基本が楽しく学べる1冊。トップ選手の子ども時代の練習法も紹介。水泳大好きな少年少女に。</p>
+              <a class="gear-cta" href="https://amzn.to/4wUfWah" target="_blank" rel="nofollow sponsored noopener">
+                Amazonで見る <span class="arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ITEM: BOOK 4 -->
+        <div class="rec-card rec-card-book">
+          <div class="rec-type-badge type-book">📖 書籍</div>
+          <div class="rec-book-row">
+            <img class="rec-book-cover" src="https://images.bbm-japan.com/media/article/2133/images/main_13b5c406281a98f4b23f364615886de022541d0d.jpg" alt="水泳選手のためのコンディショニングトレーニング 基礎・上半身編" loading="lazy">
+            <div class="rec-book-info">
+              <div class="gear-name">水泳選手のための<br>コンディショニングトレーニング<br>《基礎・上半身編》</div>
+              <p class="rec-desc">代表チーム帯同トレーナーによる、水泳選手向けのセルフコンディショニング解説書。身体のメカニズムから上半身トレーニングまで実演写真付きで紹介。</p>
+              <a class="gear-cta" href="https://amzn.to/4hoCPOi" target="_blank" rel="nofollow sponsored noopener">
+                Amazonで見る <span class="arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ITEM: BOOK 5 (no cover image available - publisher restricts personal use of cover art) -->
+        <div class="rec-card rec-card-book">
+          <div class="rec-type-badge type-book">📖 書籍</div>
+          <div class="rec-book-row">
+            <div class="rec-book-cover-placeholder">📖</div>
+            <div class="rec-book-info">
+              <div class="gear-name">つながる心<br>ひとりじゃない、チームだから戦えた<br>27人のトビウオジャパン</div>
+              <p class="rec-desc">ロンドン五輪・競泳日本代表27名の手記集。北島康介・松田丈志ら代表選手が、チームとして結果を出すために実践したことを語る一冊。（集英社ビジネス書）</p>
+              <a class="gear-cta" href="https://amzn.to/4bJ0fdF" target="_blank" rel="nofollow sponsored noopener">
+                Amazonで見る <span class="arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="gear-disclosure">本ページはAmazonアソシエイト・プログラムを含むアフィリエイトリンクを使用しています。</div>
       </div>
     </div>
   </div>
