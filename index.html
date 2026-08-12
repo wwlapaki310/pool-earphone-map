@@ -219,23 +219,18 @@
     line-height:1.5; flex:0 0 auto;
   }
 
-  /* ---- submission form ---- */
-  .submit-panel{
+  .sidebar-footer{
+    flex:0 0 auto;
+    padding:10px 14px;
     border-top:1px solid var(--line);
     background:var(--card);
-    flex:0 0 auto;
   }
-  .submit-toggle{
-    width:100%; display:flex; align-items:center; justify-content:space-between;
-    background:none; border:none; cursor:pointer;
-    padding:12px 14px; font-size:12.5px; font-weight:700; color:var(--deep2);
+  .footer-submit-btn{
+    width:100%; border:none; background:var(--deep2); color:#fff;
+    font-weight:700; font-size:13px; padding:11px; border-radius:10px; cursor:pointer;
   }
-  .submit-toggle .chev{transition: transform .15s ease; color:var(--ink-soft);}
-  .submit-toggle.open .chev{transform: rotate(180deg);}
-  .submit-form{
-    display:none; padding: 0 14px 14px; flex-direction:column; gap:9px;
-  }
-  .submit-form.open{display:flex;}
+  .footer-submit-btn:active{background:var(--deep);}
+
   .f-row{display:flex; flex-direction:column; gap:4px;}
   .f-row label{font-size:11px; font-weight:600; color:var(--ink-soft);}
   .f-row .req{color:var(--no); font-weight:700; font-size:9.5px;}
@@ -247,6 +242,7 @@
   .f-row input:focus, .f-row select:focus, .f-row textarea:focus{
     outline:2px solid var(--ripple); outline-offset:1px;
   }
+  .submit-form{display:flex; flex-direction:column; gap:9px;}
   .f-submit{
     margin-top:4px; border:none; background:var(--deep2); color:#fff;
     font-weight:700; font-size:13px; padding:11px; border-radius:8px; cursor:pointer;
@@ -256,11 +252,56 @@
   .f-status.ok{color:var(--ok); font-weight:700;}
   .f-status.err{color:var(--no); font-weight:700;}
   .submit-note{
-    margin:0; padding: 0 14px 14px; font-size:10.5px; color:var(--ink-soft); line-height:1.5;
+    margin:14px 0 0; font-size:10.5px; color:var(--ink-soft); line-height:1.5;
+  }
+
+  /* ---- submission modal ---- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(11,45,60,0.45);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-sheet{
+    width:100%; max-width:480px;
+    max-height:88vh; max-height:88dvh;
+    background:var(--card);
+    border-radius:18px 18px 0 0;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    animation: sheetUp .22s ease;
+  }
+  @keyframes sheetUp{
+    0%{transform: translateY(100%);}
+    100%{transform: translateY(0);}
+  }
+  @media (min-width: 640px){
+    .modal-overlay{align-items:center;}
+    .modal-sheet{border-radius:18px; max-height:82vh;}
+  }
+  .modal-handle{
+    width:36px; height:4px; border-radius:999px; background:var(--line);
+    margin:10px auto 0; flex:0 0 auto;
+  }
+  .modal-header{
+    flex:0 0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px 12px;
+    border-bottom:1px solid var(--line);
+    font-size:14px; font-weight:700; color:var(--deep2);
+  }
+  .modal-close{
+    border:none; background:var(--surface); color:var(--ink-soft);
+    width:28px; height:28px; border-radius:50%; font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-body{
+    flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:16px; min-height:0;
   }
 
   .thanks-panel{
-    display:none; margin: 0 14px 14px; padding: 18px 16px;
+    display:none; padding: 18px 16px;
     background: linear-gradient(135deg, var(--ok-bg), #f2fbf7);
     border:1px solid var(--ok); border-radius:14px;
     text-align:center;
@@ -419,58 +460,8 @@
           </div>
           <div class="list-wrap" id="listWrap"></div>
 
-          <div class="submit-panel">
-            <button class="submit-toggle" id="submitToggle">
-              <span>＋ 施設情報をここから投稿する</span>
-              <span class="chev" id="submitChev">▾</span>
-            </button>
-            <form class="submit-form" id="submitForm" action="https://formspree.io/f/xbgrovgk" method="POST">
-              <div class="f-row">
-                <label>施設名 <span class="req">必須</span></label>
-                <input type="text" name="施設名" required placeholder="例：〇〇市立温水プール">
-              </div>
-              <div class="f-row">
-                <label>エリア（市区町村） <span class="req">必須</span></label>
-                <input type="text" name="エリア" required placeholder="例：横浜市港北区">
-              </div>
-              <div class="f-row">
-                <label>イヤホン持ち込みの可否 <span class="req">必須</span></label>
-                <select name="可否" required>
-                  <option value="">選択してください</option>
-                  <option value="OK（確定・公式に明記あり）">OK（確定・公式に明記あり）</option>
-                  <option value="要確認（明記なし／条件付き）">要確認（明記なし／条件付き）</option>
-                  <option value="NG（明確に禁止）">NG（明確に禁止）</option>
-                  <option value="現地で聞いてみた程度">現地で聞いてみた程度</option>
-                </select>
-              </div>
-              <div class="f-row">
-                <label>根拠・詳細 <span class="req">必須</span></label>
-                <textarea name="根拠・詳細" required rows="3" placeholder="例：受付で聞いたところ、骨伝導式で耳を塞がないものなら可、との回答でした。"></textarea>
-              </div>
-              <div class="f-row">
-                <label>出典URL（あれば）</label>
-                <input type="url" name="出典URL" placeholder="https://">
-              </div>
-              <div class="f-row">
-                <label>料金（わかれば）</label>
-                <input type="text" name="料金" placeholder="例：500円">
-              </div>
-              <input type="hidden" name="_subject" value="プール情報の新規投稿">
-              <button type="submit" class="f-submit" id="fSubmitBtn">投稿する</button>
-              <div class="f-status" id="fStatus"></div>
-            </form>
-            <div class="thanks-panel" id="thanksPanel">
-              <div class="thanks-icon">🙏</div>
-              <div class="thanks-title">投稿ありがとうございました！</div>
-              <div class="thanks-body">
-                運営メンバーが確認いたします。<br>
-                もししばらく更新がなければ、<br>
-                <a class="handle" href="https://x.com/fox_aki310oooooo" target="_blank" rel="noopener">@fox_aki310oooooo</a>
-                までご連絡ください。
-              </div>
-              <button class="thanks-close" id="thanksClose" type="button">閉じる</button>
-            </div>
-            <p class="submit-note" id="submitNote">投稿内容はメールで届き、内容を確認のうえマップに反映します。すぐには地図に表示されません。</p>
+          <div class="sidebar-footer">
+            <button class="footer-submit-btn" id="footerSubmitBtn" type="button">＋ 施設情報を投稿する</button>
           </div>
           <div class="legend-note">
             情報は2026年8月時点のウェブ調査に基づく参考情報です。ルールは施設側の運用変更により随時変わるため、来館前に必ず各施設の公式サイトまたは電話で最新情報をご確認ください。
@@ -605,11 +596,11 @@
           </div>
         </div>
 
-        <!-- ITEM: BOOK 5 (no cover image available - publisher restricts personal use of cover art) -->
+        <!-- ITEM: BOOK 5 -->
         <div class="rec-card rec-card-book">
           <div class="rec-type-badge type-book">📖 書籍</div>
           <div class="rec-book-row">
-            <div class="rec-book-cover-placeholder">📖</div>
+            <img class="rec-book-cover" src="https://m.media-amazon.com/images/I/91WtOFksF9L._SL1500_.jpg" alt="つながる心 ひとりじゃない、チームだから戦えた 27人のトビウオジャパン" loading="lazy">
             <div class="rec-book-info">
               <div class="gear-name">つながる心<br>ひとりじゃない、チームだから戦えた<br>27人のトビウオジャパン</div>
               <p class="rec-desc">ロンドン五輪・競泳日本代表27名の手記集。北島康介・松田丈志ら代表選手が、チームとして結果を出すために実践したことを語る一冊。（集英社ビジネス書）</p>
@@ -622,6 +613,65 @@
 
         <div class="gear-disclosure">本ページはAmazonアソシエイト・プログラムを含むアフィリエイトリンクを使用しています。</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-sheet" id="modalSheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span>施設情報を投稿する</span>
+      <button class="modal-close" id="modalCloseBtn" type="button" aria-label="閉じる">✕</button>
+    </div>
+    <div class="modal-body">
+      <form class="submit-form" id="submitForm" action="https://formspree.io/f/xbgrovgk" method="POST">
+        <div class="f-row">
+          <label>施設名 <span class="req">必須</span></label>
+          <input type="text" name="施設名" required placeholder="例：〇〇市立温水プール">
+        </div>
+        <div class="f-row">
+          <label>エリア（市区町村） <span class="req">必須</span></label>
+          <input type="text" name="エリア" required placeholder="例：横浜市港北区">
+        </div>
+        <div class="f-row">
+          <label>イヤホン持ち込みの可否 <span class="req">必須</span></label>
+          <select name="可否" required>
+            <option value="">選択してください</option>
+            <option value="OK（確定・公式に明記あり）">OK（確定・公式に明記あり）</option>
+            <option value="要確認（明記なし／条件付き）">要確認（明記なし／条件付き）</option>
+            <option value="NG（明確に禁止）">NG（明確に禁止）</option>
+            <option value="現地で聞いてみた程度">現地で聞いてみた程度</option>
+          </select>
+        </div>
+        <div class="f-row">
+          <label>根拠・詳細 <span class="req">必須</span></label>
+          <textarea name="根拠・詳細" required rows="3" placeholder="例：受付で聞いたところ、骨伝導式で耳を塞がないものなら可、との回答でした。"></textarea>
+        </div>
+        <div class="f-row">
+          <label>出典URL（あれば）</label>
+          <input type="url" name="出典URL" placeholder="https://">
+        </div>
+        <div class="f-row">
+          <label>料金（わかれば）</label>
+          <input type="text" name="料金" placeholder="例：500円">
+        </div>
+        <input type="hidden" name="_subject" value="プール情報の新規投稿">
+        <button type="submit" class="f-submit" id="fSubmitBtn">投稿する</button>
+        <div class="f-status" id="fStatus"></div>
+      </form>
+      <div class="thanks-panel" id="thanksPanel">
+        <div class="thanks-icon">🙏</div>
+        <div class="thanks-title">投稿ありがとうございました！</div>
+        <div class="thanks-body">
+          運営メンバーが確認いたします。<br>
+          もししばらく更新がなければ、<br>
+          <a class="handle" href="https://x.com/fox_aki310oooooo" target="_blank" rel="noopener">@fox_aki310oooooo</a>
+          までご連絡ください。
+        </div>
+        <button class="thanks-close" id="thanksClose" type="button">閉じる</button>
+      </div>
+      <p class="submit-note" id="submitNote">投稿内容はメールで届き、内容を確認のうえマップに反映します。すぐには地図に表示されません。</p>
     </div>
   </div>
 </div>
@@ -915,25 +965,32 @@ function applyFilters(){
 
 renderList(activeStatuses, '');
 
-// ---- submission form ----
-const submitToggle = document.getElementById('submitToggle');
-const submitForm = document.getElementById('submitForm');
+// ---- submission modal ----
+const modalOverlay = document.getElementById('modalOverlay');
+const modalSheet = document.getElementById('modalSheet');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+const footerSubmitBtn = document.getElementById('footerSubmitBtn');
 const heroContributeBtn = document.getElementById('heroContributeBtn');
+const submitForm = document.getElementById('submitForm');
 
-function openSubmitForm(){
-  const mapTab = document.querySelector('.tab-btn[data-view="view-map"]');
-  if(!mapTab.classList.contains('active')) mapTab.click();
-  submitForm.classList.add('open');
-  submitToggle.classList.add('open');
-  setTimeout(() => submitForm.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+function openModal(){
+  modalOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  modalOverlay.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
-submitToggle.addEventListener('click', () => {
-  const isOpen = submitForm.classList.toggle('open');
-  submitToggle.classList.toggle('open', isOpen);
+footerSubmitBtn.addEventListener('click', openModal);
+heroContributeBtn.addEventListener('click', openModal);
+modalCloseBtn.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) closeModal();
 });
-
-heroContributeBtn.addEventListener('click', openSubmitForm);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal();
+});
 
 const fStatus = document.getElementById('fStatus');
 const fSubmitBtn = document.getElementById('fSubmitBtn');
@@ -958,7 +1015,7 @@ submitForm.addEventListener('submit', async (e) => {
       submitForm.style.display = 'none';
       submitNote.style.display = 'none';
       thanksPanel.classList.add('show');
-      thanksPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      modalSheet.scrollTop = 0;
     } else {
       const data = await res.json().catch(() => null);
       const msg = data && data.errors ? data.errors.map(x => x.message).join(' / ') : '送信に失敗しました。時間をおいて再度お試しください。';
@@ -977,8 +1034,7 @@ thanksClose.addEventListener('click', () => {
   thanksPanel.classList.remove('show');
   submitForm.style.display = 'flex';
   submitNote.style.display = 'block';
-  submitForm.classList.remove('open');
-  submitToggle.classList.remove('open');
+  closeModal();
 });
 
 // fix initial map sizing after layout settles
