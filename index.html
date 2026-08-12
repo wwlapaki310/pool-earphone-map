@@ -259,6 +259,31 @@
     margin:0; padding: 0 14px 14px; font-size:10.5px; color:var(--ink-soft); line-height:1.5;
   }
 
+  .thanks-panel{
+    display:none; margin: 0 14px 14px; padding: 18px 16px;
+    background: linear-gradient(135deg, var(--ok-bg), #f2fbf7);
+    border:1px solid var(--ok); border-radius:14px;
+    text-align:center;
+    animation: thanksPop .28s ease;
+  }
+  .thanks-panel.show{display:block;}
+  @keyframes thanksPop{
+    0%{opacity:0; transform: scale(0.94) translateY(4px);}
+    100%{opacity:1; transform: scale(1) translateY(0);}
+  }
+  .thanks-icon{font-size:30px; line-height:1; margin-bottom:8px;}
+  .thanks-title{font-size:14px; font-weight:700; color:var(--ok); margin-bottom:6px;}
+  .thanks-body{font-size:12px; line-height:1.7; color:var(--ink);}
+  .thanks-body .handle{
+    display:inline-flex; align-items:center; gap:4px;
+    font-weight:700; color:var(--deep2); text-decoration:none;
+    border-bottom:1px solid var(--deep2);
+  }
+  .thanks-close{
+    margin-top:12px; border:none; background:none; color:var(--ink-soft);
+    font-size:11.5px; text-decoration:underline; cursor:pointer; padding:4px;
+  }
+
   /* ---- gear view ---- */
   #view-gear{overflow-y:auto; -webkit-overflow-scrolling:touch; background:var(--surface);}
   .gear-wrap{max-width:640px; margin:0 auto; padding: 20px 16px 60px;}
@@ -384,7 +409,18 @@
               <button type="submit" class="f-submit" id="fSubmitBtn">投稿する</button>
               <div class="f-status" id="fStatus"></div>
             </form>
-            <p class="submit-note">投稿内容はメールで届き、内容を確認のうえマップに反映します。すぐには地図に表示されません。</p>
+            <div class="thanks-panel" id="thanksPanel">
+              <div class="thanks-icon">🙏</div>
+              <div class="thanks-title">投稿ありがとうございました！</div>
+              <div class="thanks-body">
+                運営メンバーが確認いたします。<br>
+                もししばらく更新がなければ、<br>
+                <a class="handle" href="https://x.com/fox_aki310oooooo" target="_blank" rel="noopener">@fox_aki310oooooo</a>
+                までご連絡ください。
+              </div>
+              <button class="thanks-close" id="thanksClose" type="button">閉じる</button>
+            </div>
+            <p class="submit-note" id="submitNote">投稿内容はメールで届き、内容を確認のうえマップに反映します。すぐには地図に表示されません。</p>
           </div>
           <div class="legend-note">
             情報は2026年8月時点のウェブ調査に基づく参考情報です。ルールは施設側の運用変更により随時変わるため、来館前に必ず各施設の公式サイトまたは電話で最新情報をご確認ください。
@@ -749,6 +785,9 @@ heroContributeBtn.addEventListener('click', openSubmitForm);
 
 const fStatus = document.getElementById('fStatus');
 const fSubmitBtn = document.getElementById('fSubmitBtn');
+const thanksPanel = document.getElementById('thanksPanel');
+const submitNote = document.getElementById('submitNote');
+const thanksClose = document.getElementById('thanksClose');
 
 submitForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -762,9 +801,12 @@ submitForm.addEventListener('submit', async (e) => {
       headers: { 'Accept': 'application/json' }
     });
     if (res.ok) {
-      fStatus.textContent = '送信しました。確認のうえマップに反映します。ありがとうございます！';
-      fStatus.className = 'f-status ok';
+      fStatus.textContent = '';
       submitForm.reset();
+      submitForm.style.display = 'none';
+      submitNote.style.display = 'none';
+      thanksPanel.classList.add('show');
+      thanksPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
       const data = await res.json().catch(() => null);
       const msg = data && data.errors ? data.errors.map(x => x.message).join(' / ') : '送信に失敗しました。時間をおいて再度お試しください。';
@@ -777,6 +819,14 @@ submitForm.addEventListener('submit', async (e) => {
   } finally {
     fSubmitBtn.disabled = false;
   }
+});
+
+thanksClose.addEventListener('click', () => {
+  thanksPanel.classList.remove('show');
+  submitForm.style.display = 'flex';
+  submitNote.style.display = 'block';
+  submitForm.classList.remove('open');
+  submitToggle.classList.remove('open');
 });
 
 // fix initial map sizing after layout settles
