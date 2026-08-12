@@ -1,0 +1,57 @@
+name: プール情報の追加・修正
+description: イヤホン持ち込み可否など、施設情報の追加・修正を提案する
+title: "[施設情報] "
+labels: ["pool-data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        マップに載せる施設情報の追加・修正はここから投稿してください。
+        できるだけ公式サイトなど根拠のわかるURLを添えていただけると助かります。
+  - type: input
+    id: facility_name
+    attributes:
+      label: 施設名
+      placeholder: 例：〇〇市立温水プール
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: エリア（市区町村）
+      placeholder: 例：横浜市港北区
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: イヤホン持ち込みの可否
+      options:
+        - OK（確定・公式に明記あり）
+        - 要確認（明記なし／条件付き）
+        - NG（明確に禁止）
+        - わからない・現地で聞いてみた程度
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 根拠・詳細
+      description: どこで確認したか、条件（骨伝導限定・完全防水限定など）があれば記載してください
+      placeholder: 例：受付で聞いたところ、骨伝導式で耳を塞がないものなら可、との回答でした。
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: 出典URL（公式サイト等）
+      placeholder: https://
+    validations:
+      required: false
+  - type: input
+    id: price
+    attributes:
+      label: 料金（わかれば）
+      placeholder: 例：500円
+    validations:
+      required: false
