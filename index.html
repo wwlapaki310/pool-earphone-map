@@ -65,9 +65,6 @@
     font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ripple); font-weight:700;
     white-space:nowrap;
   }
-  .device-chip{
-    display:none;
-  }
   .contribute-btn{
     display:inline-flex; align-items:center; gap:6px; flex:none;
     background:var(--ripple); color:var(--deep);
@@ -81,12 +78,6 @@
   @media (min-width: 640px){
     header.hero{padding: 20px 26px 18px;}
     .hero-title h1{font-size:22px;}
-    .device-chip{
-      display:inline-flex; align-items:center; gap:6px;
-      background:rgba(255,255,255,0.08); border:1px solid rgba(127,209,196,0.35);
-      border-radius:999px; padding:6px 14px; font-size:11.5px; color:#eaf7f5;
-    }
-    .device-chip b{color:var(--ripple); font-weight:700;}
   }
 
   /* ---- tab bar ---- */
@@ -219,18 +210,6 @@
     line-height:1.5; flex:0 0 auto;
   }
 
-  .sidebar-footer{
-    flex:0 0 auto;
-    padding:10px 14px;
-    border-top:1px solid var(--line);
-    background:var(--card);
-  }
-  .footer-submit-btn{
-    width:100%; border:none; background:var(--deep2); color:#fff;
-    font-weight:700; font-size:13px; padding:11px; border-radius:10px; cursor:pointer;
-  }
-  .footer-submit-btn:active{background:var(--deep);}
-
   .f-row{display:flex; flex-direction:column; gap:4px;}
   .f-row label{font-size:11px; font-weight:600; color:var(--ink-soft);}
   .f-row .req{color:var(--no); font-weight:700; font-size:9.5px;}
@@ -257,7 +236,7 @@
 
   /* ---- submission modal ---- */
   .modal-overlay{
-    position:fixed; inset:0; z-index:200;
+    position:fixed; inset:0; z-index:9999;
     background:rgba(11,45,60,0.45);
     display:none; align-items:flex-end; justify-content:center;
   }
@@ -433,7 +412,6 @@
         <h1>水中イヤホンOKプールマップ</h1>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <div class="device-chip">対象機種の目安 &nbsp;<b>骨伝導 ・ IP68防水 ・ 内蔵メモリ再生</b></div>
         <button class="contribute-btn" id="heroContributeBtn" type="button">＋ 情報を投稿</button>
       </div>
     </div>
@@ -460,9 +438,6 @@
           </div>
           <div class="list-wrap" id="listWrap"></div>
 
-          <div class="sidebar-footer">
-            <button class="footer-submit-btn" id="footerSubmitBtn" type="button">＋ 施設情報を投稿する</button>
-          </div>
           <div class="legend-note">
             情報は2026年8月時点のウェブ調査に基づく参考情報です。ルールは施設側の運用変更により随時変わるため、来館前に必ず各施設の公式サイトまたは電話で最新情報をご確認ください。
           </div>
@@ -969,7 +944,6 @@ renderList(activeStatuses, '');
 const modalOverlay = document.getElementById('modalOverlay');
 const modalSheet = document.getElementById('modalSheet');
 const modalCloseBtn = document.getElementById('modalCloseBtn');
-const footerSubmitBtn = document.getElementById('footerSubmitBtn');
 const heroContributeBtn = document.getElementById('heroContributeBtn');
 const submitForm = document.getElementById('submitForm');
 
@@ -982,7 +956,6 @@ function closeModal(){
   document.body.style.overflow = '';
 }
 
-footerSubmitBtn.addEventListener('click', openModal);
 heroContributeBtn.addEventListener('click', openModal);
 modalCloseBtn.addEventListener('click', closeModal);
 modalOverlay.addEventListener('click', (e) => {
