@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>水中イヤホンOKプールマップ | Kanto Pool Earphone Map</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <style>
@@ -21,30 +21,31 @@
     --ink-soft:#4c6169;
     --line:#d8e6e6;
     --ripple:#7fd1c4;
+    --amber:#e08a3c;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;height:100%;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%; overflow-x:hidden;}
   body{
     font-family:"Zen Kaku Gothic New","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     background:var(--surface);
     color:var(--ink);
   }
-  .app{
-    display:grid;
-    grid-template-columns: 380px 1fr;
-    height:100vh;
-  }
-  @media (max-width: 860px){
-    .app{grid-template-columns: 1fr; grid-template-rows: auto 46vh 1fr;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  .page{
+    display:flex; flex-direction:column;
+    height:100vh; height:100dvh;
+    overflow:hidden;
   }
 
   /* ---- header / hero ---- */
   header.hero{
-    grid-column: 1 / -1;
+    flex:0 0 auto;
     position:relative;
     background: linear-gradient(120deg, var(--deep) 0%, var(--deep2) 60%, #146e73 100%);
     color:#eaf7f5;
-    padding: 22px 28px 20px;
+    padding: 14px 16px 12px;
     overflow:hidden;
   }
   header.hero::before{
@@ -55,252 +56,392 @@
       radial-gradient(circle at 85% 15%, rgba(127,209,196,0.12) 0, transparent 40%);
     pointer-events:none;
   }
-  .hero-inner{position:relative; display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px;}
-  .hero-title{display:flex; align-items:center; gap:14px;}
+  .hero-inner{position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .hero-title{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; min-width:0;}
   .hero-title h1{
-    font-size:22px; margin:0; letter-spacing:.02em; font-weight:700;
+    font-size:17px; margin:0; letter-spacing:.01em; font-weight:700; line-height:1.3;
   }
-  .hero-title .eyebrow{
-    font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ripple); font-weight:600;
+  .eyebrow{
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ripple); font-weight:700;
+    white-space:nowrap;
   }
-  .hero-sub{font-size:13px; color:#bcded9; max-width:520px; line-height:1.5; margin-top:4px;}
   .device-chip{
-    display:inline-flex; align-items:center; gap:6px;
-    background:rgba(255,255,255,0.08); border:1px solid rgba(127,209,196,0.35);
-    border-radius:999px; padding:6px 14px; font-size:12px; color:#eaf7f5; white-space:nowrap;
+    display:none;
   }
-  .device-chip b{color:var(--ripple); font-weight:700;}
-  .hero-actions{display:flex; flex-direction:column; align-items:flex-end; gap:8px;}
   .contribute-btn{
-    display:inline-flex; align-items:center; gap:6px;
+    display:inline-flex; align-items:center; gap:6px; flex:none;
     background:var(--ripple); color:var(--deep);
-    font-size:12.5px; font-weight:700; text-decoration:none;
-    padding:8px 16px; border-radius:999px;
-    transition: transform .12s ease, box-shadow .12s ease;
+    font-size:12px; font-weight:700; text-decoration:none;
+    padding:8px 14px; border-radius:999px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    border:none; cursor:pointer; font-family:inherit;
+    border:none; cursor:pointer;
   }
-  .contribute-btn:hover{transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.22);}
+  .contribute-btn:active{transform: scale(0.97);}
 
-  /* ---- sidebar ---- */
-  aside.panel{
-    background:var(--surface);
-    border-right:1px solid var(--line);
-    display:flex; flex-direction:column;
+  @media (min-width: 640px){
+    header.hero{padding: 20px 26px 18px;}
+    .hero-title h1{font-size:22px;}
+    .device-chip{
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(255,255,255,0.08); border:1px solid rgba(127,209,196,0.35);
+      border-radius:999px; padding:6px 14px; font-size:11.5px; color:#eaf7f5;
+    }
+    .device-chip b{color:var(--ripple); font-weight:700;}
+  }
+
+  /* ---- tab bar ---- */
+  .tabbar{
+    flex:0 0 auto;
+    display:flex;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+  }
+  .tab-btn{
+    flex:1;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:12px 8px;
+    font-size:13px; font-weight:700; color:var(--ink-soft);
+    background:none; border:none; border-bottom:3px solid transparent;
+    cursor:pointer; transition: color .12s ease, border-color .12s ease;
+  }
+  .tab-btn .ico{font-size:15px; line-height:1;}
+  .tab-btn.active{color:var(--deep2); border-bottom-color:var(--ripple);}
+  .tab-btn:active{background:var(--surface);}
+
+  /* ---- views ---- */
+  .views{flex:1 1 auto; min-height:0; position:relative;}
+  .view{
+    position:absolute; inset:0;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: opacity .16s ease;
     overflow:hidden;
   }
+  .view.active{opacity:1; visibility:visible; pointer-events:auto;}
+
+  /* ---- map view layout ---- */
+  #view-map .app{
+    display:flex; flex-direction:column;
+    height:100%;
+  }
+  @media (min-width: 860px){
+    #view-map .app{display:grid; grid-template-columns: 380px 1fr;}
+  }
+
+  aside.panel{
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    flex:0 0 44vh;
+    min-height:0;
+  }
+  @media (min-width: 860px){
+    aside.panel{border-bottom:none; border-right:1px solid var(--line); flex:none;}
+  }
+
   .filters{
-    padding:16px 18px 10px;
+    padding:10px 14px 8px;
     border-bottom:1px solid var(--line);
     background:var(--card);
+    flex:0 0 auto;
   }
-  .filters .row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .filters .row{display:flex; gap:6px; flex-wrap:nowrap; margin-bottom:8px;}
   .filter-btn{
-    flex:1; min-width:90px;
-    border:1px solid var(--line); background:#fff; border-radius:10px;
-    padding:8px 10px; font-size:12.5px; font-weight:600; cursor:pointer;
-    display:flex; align-items:center; gap:6px; justify-content:center;
+    flex:1; min-width:0;
+    border:1px solid var(--line); background:#fff; border-radius:9px;
+    padding:7px 4px; font-size:11.5px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; gap:5px; justify-content:center;
     color:var(--ink-soft); transition: all .15s ease;
+    white-space:nowrap;
   }
-  .filter-btn .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+  .filter-btn .dot{width:8px; height:8px; border-radius:50%; flex:none;}
   .filter-btn[data-status="ok"] .dot{background:var(--ok);}
   .filter-btn[data-status="maybe"] .dot{background:var(--maybe);}
   .filter-btn[data-status="no"] .dot{background:var(--no);}
   .filter-btn.active[data-status="ok"]{background:var(--ok-bg); border-color:var(--ok); color:var(--ok);}
   .filter-btn.active[data-status="maybe"]{background:var(--maybe-bg); border-color:var(--maybe); color:var(--maybe);}
   .filter-btn.active[data-status="no"]{background:var(--no-bg); border-color:var(--no); color:var(--no);}
-  .filter-btn:not(.active){opacity:.55;}
+  .filter-btn:not(.active){opacity:.5;}
 
   .search-box{position:relative;}
   .search-box input{
-    width:100%; padding:9px 12px 9px 34px; border-radius:10px; border:1px solid var(--line);
+    width:100%; padding:9px 12px 9px 30px; border-radius:9px; border:1px solid var(--line);
     font-size:13px; background:#fff; color:var(--ink);
   }
   .search-box::before{
-    content:"検"; position:absolute; left:11px; top:50%; transform:translateY(-50%);
-    font-size:11px; color:var(--ink-soft); font-weight:700;
+    content:"検"; position:absolute; left:10px; top:50%; transform:translateY(-50%);
+    font-size:10px; color:var(--ink-soft); font-weight:700;
   }
 
-  .list-wrap{flex:1; overflow-y:auto; padding: 6px 10px 20px;}
+  .list-wrap{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 4px 10px 12px; min-height:0;}
   .area-label{
-    font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);
-    padding: 14px 8px 6px; font-weight:700;
+    font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+    padding: 12px 6px 6px; font-weight:700;
   }
   .card{
     background:var(--card); border:1px solid var(--line); border-left-width:4px;
-    border-radius:10px; padding:10px 12px; margin:0 0 8px; cursor:pointer;
-    transition: transform .12s ease, box-shadow .12s ease;
+    border-radius:10px; padding:9px 11px; margin:0 0 7px; cursor:pointer;
   }
-  .card:hover{transform: translateY(-1px); box-shadow: 0 4px 14px rgba(11,45,60,0.08);}
   .card.status-ok{border-left-color:var(--ok);}
   .card.status-maybe{border-left-color:var(--maybe);}
   .card.status-no{border-left-color:var(--no);}
   .card-top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start;}
-  .card-name{font-size:13.5px; font-weight:700; line-height:1.35;}
+  .card-name{font-size:13px; font-weight:700; line-height:1.4; min-width:0; word-break:break-word;}
   .badge{
-    flex:none; font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap;
-    letter-spacing:.02em;
+    flex:0 0 auto; font-size:9.5px; font-weight:700; padding:3px 7px; border-radius:999px; white-space:nowrap;
   }
   .badge.status-ok{background:var(--ok-bg); color:var(--ok);}
   .badge.status-maybe{background:var(--maybe-bg); color:var(--maybe);}
   .badge.status-no{background:var(--no-bg); color:var(--no);}
-  .card-meta{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
-  .card-price{font-family:"SFMono-Regular",Consolas,monospace; font-size:11px; color:var(--ink-soft); margin-top:3px;}
+  .card-meta{font-size:11px; color:var(--ink-soft); margin-top:4px;}
+  .card-price{font-family:"SFMono-Regular",Consolas,monospace; font-size:10.5px; color:var(--ink-soft); margin-top:3px;}
 
   /* ---- map ---- */
-  #map{width:100%; height:100%;}
+  #map{width:100%; height:100%; flex:1 1 auto; min-height:0;}
+  .leaflet-popup{max-width: 78vw;}
   .leaflet-popup-content-wrapper{border-radius:12px;}
-  .popup-inner{font-family:inherit; max-width:260px;}
+  .leaflet-popup-content{margin:13px 26px 13px 14px !important; width:auto !important; max-width:240px;}
+  .popup-inner{font-family:inherit;}
   .popup-inner .p-badge{
     display:inline-block; font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; margin-bottom:6px;
   }
   .popup-inner .p-badge.status-ok{background:var(--ok-bg); color:var(--ok);}
   .popup-inner .p-badge.status-maybe{background:var(--maybe-bg); color:var(--maybe);}
   .popup-inner .p-badge.status-no{background:var(--no-bg); color:var(--no);}
-  .popup-inner h3{margin:0 0 4px; font-size:14.5px;}
+  .popup-inner h3{margin:0 0 4px; font-size:14px; line-height:1.4; word-break:break-word;}
   .popup-inner .p-area{font-size:11px; color:var(--ink-soft); margin-bottom:6px;}
-  .popup-inner p{font-size:12px; line-height:1.5; margin:6px 0; color:var(--ink);}
+  .popup-inner p{font-size:12px; line-height:1.55; margin:6px 0; color:var(--ink);}
   .popup-inner .p-price{font-family:"SFMono-Regular",Consolas,monospace; font-size:11.5px; color:var(--deep2); margin:4px 0;}
-  .popup-inner a{font-size:11.5px; color:var(--deep2); font-weight:700;}
+  .popup-inner a.src-link{font-size:11.5px; color:var(--deep2); font-weight:700;}
 
   .legend-note{
-    padding:10px 18px 16px; font-size:11px; color:var(--ink-soft); border-top:1px solid var(--line); background:var(--card);
-    line-height:1.5;
+    padding:10px 14px 12px; font-size:10.5px; color:var(--ink-soft); border-top:1px solid var(--line); background:var(--card);
+    line-height:1.5; flex:0 0 auto;
   }
 
   /* ---- submission form ---- */
   .submit-panel{
     border-top:1px solid var(--line);
     background:var(--card);
+    flex:0 0 auto;
   }
   .submit-toggle{
     width:100%; display:flex; align-items:center; justify-content:space-between;
     background:none; border:none; cursor:pointer;
-    padding:14px 18px; font-size:13px; font-weight:700; color:var(--deep2);
-    font-family:inherit;
+    padding:12px 14px; font-size:12.5px; font-weight:700; color:var(--deep2);
   }
   .submit-toggle .chev{transition: transform .15s ease; color:var(--ink-soft);}
   .submit-toggle.open .chev{transform: rotate(180deg);}
   .submit-form{
-    display:none; padding: 0 18px 16px; flex-direction:column; gap:10px;
+    display:none; padding: 0 14px 14px; flex-direction:column; gap:9px;
   }
   .submit-form.open{display:flex;}
   .f-row{display:flex; flex-direction:column; gap:4px;}
-  .f-row label{font-size:11.5px; font-weight:600; color:var(--ink-soft);}
-  .f-row .req{color:var(--no); font-weight:700; font-size:10px;}
+  .f-row label{font-size:11px; font-weight:600; color:var(--ink-soft);}
+  .f-row .req{color:var(--no); font-weight:700; font-size:9.5px;}
   .f-row input, .f-row select, .f-row textarea{
     border:1px solid var(--line); border-radius:8px; padding:8px 10px;
     font-size:13px; font-family:inherit; color:var(--ink); background:#fff;
-    resize:vertical;
+    resize:vertical; width:100%;
   }
   .f-row input:focus, .f-row select:focus, .f-row textarea:focus{
     outline:2px solid var(--ripple); outline-offset:1px;
   }
   .f-submit{
     margin-top:4px; border:none; background:var(--deep2); color:#fff;
-    font-weight:700; font-size:13px; padding:10px; border-radius:8px; cursor:pointer;
-    font-family:inherit;
+    font-weight:700; font-size:13px; padding:11px; border-radius:8px; cursor:pointer;
   }
-  .f-submit:hover{background:var(--deep);}
   .f-submit:disabled{opacity:.6; cursor:not-allowed;}
-  .f-status{font-size:12px; text-align:center; min-height:16px;}
+  .f-status{font-size:11.5px; text-align:center; min-height:16px;}
   .f-status.ok{color:var(--ok); font-weight:700;}
   .f-status.err{color:var(--no); font-weight:700;}
   .submit-note{
-    margin:0; padding: 0 18px 16px; font-size:11px; color:var(--ink-soft); line-height:1.5;
+    margin:0; padding: 0 14px 14px; font-size:10.5px; color:var(--ink-soft); line-height:1.5;
   }
 
-  ::-webkit-scrollbar{width:8px;}
+  /* ---- gear view ---- */
+  #view-gear{overflow-y:auto; -webkit-overflow-scrolling:touch; background:var(--surface);}
+  .gear-wrap{max-width:640px; margin:0 auto; padding: 20px 16px 60px;}
+  .gear-eyebrow{
+    font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--deep2); font-weight:700;
+  }
+  .gear-title{font-size:21px; font-weight:700; margin:6px 0 4px; line-height:1.4; color:var(--deep);}
+  .gear-sub{font-size:13px; color:var(--ink-soft); line-height:1.6; margin:0 0 18px;}
+  .gear-card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:20px; margin-bottom:16px;
+  }
+  .gear-badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+  .gear-badge{
+    font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+    background:var(--ok-bg); color:var(--ok);
+  }
+  .gear-badge.amber{background:#fbeedd; color:var(--amber);}
+  .gear-name{font-size:16px; font-weight:700; line-height:1.5; margin:0 0 10px; color:var(--ink);}
+  .spec-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:8px 12px;
+    margin: 14px 0 18px;
+  }
+  .spec-item{
+    background:var(--surface); border-radius:10px; padding:9px 11px;
+  }
+  .spec-item .k{font-size:9.5px; color:var(--ink-soft); font-weight:700; letter-spacing:.04em;}
+  .spec-item .v{font-size:12.5px; font-weight:700; color:var(--deep); margin-top:2px;}
+  .gear-cta{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; background: linear-gradient(120deg, var(--amber), #d97f2b);
+    color:#fff; font-weight:700; font-size:15px;
+    padding:14px; border-radius:12px; text-decoration:none;
+    box-shadow: 0 4px 14px rgba(224,138,60,0.35);
+    border:none; cursor:pointer;
+  }
+  .gear-cta:active{transform: scale(0.98);}
+  .gear-cta .arrow{font-size:18px;}
+  .gear-why{margin-top:20px;}
+  .gear-why h4{font-size:13px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin:0 0 8px;}
+  .gear-why ul{margin:0; padding-left:18px; font-size:13px; line-height:1.8; color:var(--ink);}
+  .gear-disclosure{
+    font-size:10.5px; color:var(--ink-soft); text-align:center; margin-top:14px; line-height:1.6;
+  }
+
+  ::-webkit-scrollbar{width:7px;}
   ::-webkit-scrollbar-thumb{background:#c3d5d5; border-radius:8px;}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="page">
   <header class="hero">
     <div class="hero-inner">
-      <div>
-        <div class="hero-title">
-          <span class="eyebrow">Kanto Public Pools</span>
-        </div>
+      <div class="hero-title">
+        <span class="eyebrow">Kanto Public Pools</span>
         <h1>水中イヤホンOKプールマップ</h1>
-        <div class="hero-sub">神奈川・東京の公営プール／指定管理プールを、水中イヤホンの持ち込み可否で色分け。骨伝導・完全防水・内蔵メモリ型（Shokz OpenSwim Pro等）の使用を想定して評価しています。</div>
       </div>
-      <div class="hero-actions">
+      <div style="display:flex; align-items:center; gap:8px;">
         <div class="device-chip">対象機種の目安 &nbsp;<b>骨伝導 ・ IP68防水 ・ 内蔵メモリ再生</b></div>
-        <button class="contribute-btn" id="heroContributeBtn" type="button">
-          ＋ 施設情報を投稿する
-        </button>
+        <button class="contribute-btn" id="heroContributeBtn" type="button">＋ 情報を投稿</button>
       </div>
     </div>
   </header>
 
-  <aside class="panel">
-    <div class="filters">
-      <div class="row">
-        <button class="filter-btn active" data-status="ok"><span class="dot"></span>確定OK</button>
-        <button class="filter-btn active" data-status="maybe"><span class="dot"></span>要確認</button>
-        <button class="filter-btn active" data-status="no"><span class="dot"></span>NG</button>
-      </div>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="施設名・エリアで検索" />
-      </div>
-    </div>
-    <div class="list-wrap" id="listWrap"></div>
+  <nav class="tabbar">
+    <button class="tab-btn active" data-view="view-map" type="button"><span class="ico">🗺️</span>マップ</button>
+    <button class="tab-btn" data-view="view-gear" type="button"><span class="ico">🎧</span>おすすめギア</button>
+  </nav>
 
-    <div class="submit-panel">
-      <button class="submit-toggle" id="submitToggle">
-        <span>＋ 施設情報をここから投稿する</span>
-        <span class="chev" id="submitChev">▾</span>
-      </button>
-      <form class="submit-form" id="submitForm" action="https://formspree.io/f/xbgrovgk" method="POST">
-        <div class="f-row">
-          <label>施設名 <span class="req">必須</span></label>
-          <input type="text" name="施設名" required placeholder="例：〇〇市立温水プール">
-        </div>
-        <div class="f-row">
-          <label>エリア（市区町村） <span class="req">必須</span></label>
-          <input type="text" name="エリア" required placeholder="例：横浜市港北区">
-        </div>
-        <div class="f-row">
-          <label>イヤホン持ち込みの可否 <span class="req">必須</span></label>
-          <select name="可否" required>
-            <option value="">選択してください</option>
-            <option value="OK（確定・公式に明記あり）">OK（確定・公式に明記あり）</option>
-            <option value="要確認（明記なし／条件付き）">要確認（明記なし／条件付き）</option>
-            <option value="NG（明確に禁止）">NG（明確に禁止）</option>
-            <option value="現地で聞いてみた程度">現地で聞いてみた程度</option>
-          </select>
-        </div>
-        <div class="f-row">
-          <label>根拠・詳細 <span class="req">必須</span></label>
-          <textarea name="根拠・詳細" required rows="3" placeholder="例：受付で聞いたところ、骨伝導式で耳を塞がないものなら可、との回答でした。"></textarea>
-        </div>
-        <div class="f-row">
-          <label>出典URL（あれば）</label>
-          <input type="url" name="出典URL" placeholder="https://">
-        </div>
-        <div class="f-row">
-          <label>料金（わかれば）</label>
-          <input type="text" name="料金" placeholder="例：500円">
-        </div>
-        <input type="hidden" name="_subject" value="プール情報の新規投稿">
-        <button type="submit" class="f-submit" id="fSubmitBtn">投稿する</button>
-        <div class="f-status" id="fStatus"></div>
-      </form>
-      <p class="submit-note">投稿内容はメールで届き、内容を確認のうえマップに反映します。すぐには地図に表示されません。</p>
-    </div>
-    <div class="legend-note">
-      情報は2026年8月時点のウェブ調査に基づく参考情報です。ルールは施設側の運用変更により随時変わるため、来館前に必ず各施設の公式サイトまたは電話で最新情報をご確認ください。
-    </div>
-  </aside>
+  <div class="views">
+    <div class="view active" id="view-map">
+      <div class="app">
+        <aside class="panel">
+          <div class="filters">
+            <div class="row">
+              <button class="filter-btn active" data-status="ok"><span class="dot"></span>OK</button>
+              <button class="filter-btn active" data-status="maybe"><span class="dot"></span>要確認</button>
+              <button class="filter-btn active" data-status="no"><span class="dot"></span>NG</button>
+            </div>
+            <div class="search-box">
+              <input type="text" id="searchInput" placeholder="施設名・エリアで検索" />
+            </div>
+          </div>
+          <div class="list-wrap" id="listWrap"></div>
 
-  <div id="map"></div>
+          <div class="submit-panel">
+            <button class="submit-toggle" id="submitToggle">
+              <span>＋ 施設情報をここから投稿する</span>
+              <span class="chev" id="submitChev">▾</span>
+            </button>
+            <form class="submit-form" id="submitForm" action="https://formspree.io/f/xbgrovgk" method="POST">
+              <div class="f-row">
+                <label>施設名 <span class="req">必須</span></label>
+                <input type="text" name="施設名" required placeholder="例：〇〇市立温水プール">
+              </div>
+              <div class="f-row">
+                <label>エリア（市区町村） <span class="req">必須</span></label>
+                <input type="text" name="エリア" required placeholder="例：横浜市港北区">
+              </div>
+              <div class="f-row">
+                <label>イヤホン持ち込みの可否 <span class="req">必須</span></label>
+                <select name="可否" required>
+                  <option value="">選択してください</option>
+                  <option value="OK（確定・公式に明記あり）">OK（確定・公式に明記あり）</option>
+                  <option value="要確認（明記なし／条件付き）">要確認（明記なし／条件付き）</option>
+                  <option value="NG（明確に禁止）">NG（明確に禁止）</option>
+                  <option value="現地で聞いてみた程度">現地で聞いてみた程度</option>
+                </select>
+              </div>
+              <div class="f-row">
+                <label>根拠・詳細 <span class="req">必須</span></label>
+                <textarea name="根拠・詳細" required rows="3" placeholder="例：受付で聞いたところ、骨伝導式で耳を塞がないものなら可、との回答でした。"></textarea>
+              </div>
+              <div class="f-row">
+                <label>出典URL（あれば）</label>
+                <input type="url" name="出典URL" placeholder="https://">
+              </div>
+              <div class="f-row">
+                <label>料金（わかれば）</label>
+                <input type="text" name="料金" placeholder="例：500円">
+              </div>
+              <input type="hidden" name="_subject" value="プール情報の新規投稿">
+              <button type="submit" class="f-submit" id="fSubmitBtn">投稿する</button>
+              <div class="f-status" id="fStatus"></div>
+            </form>
+            <p class="submit-note">投稿内容はメールで届き、内容を確認のうえマップに反映します。すぐには地図に表示されません。</p>
+          </div>
+          <div class="legend-note">
+            情報は2026年8月時点のウェブ調査に基づく参考情報です。ルールは施設側の運用変更により随時変わるため、来館前に必ず各施設の公式サイトまたは電話で最新情報をご確認ください。
+          </div>
+        </aside>
+
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <div class="view" id="view-gear">
+      <div class="gear-wrap">
+        <div class="gear-eyebrow">Recommended Gear</div>
+        <h2 class="gear-title">このマップを使うなら、この1台</h2>
+        <p class="gear-sub">江東区の施設やTAC茅ヶ崎、セントラルスポーツ自社クラブで「OK」の条件（骨伝導・完全防水・内蔵メモリ再生）にそのまま当てはまる代表的なモデルです。</p>
+
+        <div class="gear-card">
+          <div class="gear-badge-row">
+            <span class="gear-badge">骨伝導・耳を塞がない</span>
+            <span class="gear-badge">IP68防塵防水</span>
+            <span class="gear-badge amber">VGP2026受賞</span>
+          </div>
+          <div class="gear-name">Shokz OpenSwim Pro<br>骨伝導イヤホン オープンイヤーヘッドホン<br>スイミング用 Bluetooth IP68防塵防水（レッド）</div>
+
+          <div class="spec-grid">
+            <div class="spec-item"><div class="k">再生方式</div><div class="v">骨伝導 / 耳を塞がない</div></div>
+            <div class="spec-item"><div class="k">防水規格</div><div class="v">IP68防塵防水</div></div>
+            <div class="spec-item"><div class="k">内蔵メモリ</div><div class="v">32GB（スマホ不要で再生）</div></div>
+            <div class="spec-item"><div class="k">接続</div><div class="v">Bluetooth 5.4 / 自動ペアリング</div></div>
+            <div class="spec-item"><div class="k">連続再生</div><div class="v">最大9時間</div></div>
+            <div class="spec-item"><div class="k">認証</div><div class="v">技適認証済み・マイク付き</div></div>
+          </div>
+
+          <a class="gear-cta" href="https://amzn.to/4g5CUnQ" target="_blank" rel="nofollow sponsored noopener">
+            Amazonで見る <span class="arrow">→</span>
+          </a>
+
+          <div class="gear-why">
+            <h4>なぜこのマップと相性がいいか</h4>
+            <ul>
+              <li>江東区健康スポーツ公社の解禁条件「骨伝導式・完全防水・本体内蔵メモリ」にそのまま合致</li>
+              <li>スマホを持ち込まなくていいので、多くの施設の「携帯電話持込禁止」ルールと衝突しにくい</li>
+              <li>耳を塞がないので監視員の指示や周囲の音が聞こえ、安全面でも施設側に説明しやすい</li>
+            </ul>
+          </div>
+
+          <div class="gear-disclosure">本ページはAmazonアソシエイト・プログラムを含むアフィリエイトリンクを使用しています。</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 const STATUS_META = {
-  ok:    { label: "確定OK",   color: "#1f9e78" },
+  ok:    { label: "OK",   color: "#1f9e78" },
   maybe: { label: "要確認候補", color: "#c98a1c" },
   no:    { label: "NG",       color: "#b3473f" },
 };
@@ -464,6 +605,22 @@ const POOLS = [
   },
 ];
 
+// ---- tab switching ----
+const tabBtns = document.querySelectorAll('.tab-btn');
+const views = document.querySelectorAll('.view');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.view;
+    views.forEach(v => v.classList.toggle('active', v.id === target));
+    if(target === 'view-map'){
+      requestAnimationFrame(() => { if(map) map.invalidateSize(); });
+    }
+  });
+});
+
 // ---- map init ----
 const map = L.map('map', { zoomControl: true }).setView([35.55, 139.65], 10);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -494,7 +651,7 @@ POOLS.forEach(p => {
       <div class="p-area">${p.area}</div>
       <div class="p-price">${p.price}</div>
       <p>${p.note}</p>
-      <a href="${p.url}" target="_blank" rel="noopener">出典を見る →</a>
+      <a class="src-link" href="${p.url}" target="_blank" rel="noopener">出典を見る →</a>
     </div>
   `);
   marker.addTo(map);
@@ -573,13 +730,14 @@ renderList(activeStatuses, '');
 // ---- submission form ----
 const submitToggle = document.getElementById('submitToggle');
 const submitForm = document.getElementById('submitForm');
-const submitChev = document.getElementById('submitChev');
 const heroContributeBtn = document.getElementById('heroContributeBtn');
 
 function openSubmitForm(){
+  const mapTab = document.querySelector('.tab-btn[data-view="view-map"]');
+  if(!mapTab.classList.contains('active')) mapTab.click();
   submitForm.classList.add('open');
   submitToggle.classList.add('open');
-  submitForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => submitForm.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
 }
 
 submitToggle.addEventListener('click', () => {
@@ -620,6 +778,9 @@ submitForm.addEventListener('submit', async (e) => {
     fSubmitBtn.disabled = false;
   }
 });
+
+// fix initial map sizing after layout settles
+window.addEventListener('load', () => { setTimeout(() => map.invalidateSize(), 100); });
 </script>
 </body>
 </html>
