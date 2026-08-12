@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水中イヤホンOKプールマップ | Kanto Pool Earphone Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  :root{
+    --deep:#0b2d3c;
+    --deep2:#0f3d52;
+    --surface:#eef6f6;
+    --card:#ffffff;
+    --ok:#1f9e78;
+    --ok-bg:#e4f6ee;
+    --maybe:#c98a1c;
+    --maybe-bg:#fbf1de;
+    --no:#b3473f;
+    --no-bg:#f8e9e7;
+    --ink:#12262c;
+    --ink-soft:#4c6169;
+    --line:#d8e6e6;
+    --ripple:#7fd1c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:"Zen Kaku Gothic New","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .app{
+    display:grid;
+    grid-template-columns: 380px 1fr;
+    height:100vh;
+  }
+  @media (max-width: 860px){
+    .app{grid-template-columns: 1fr; grid-template-rows: auto 46vh 1fr;}
+  }
+
+  /* ---- header / hero ---- */
+  header.hero{
+    grid-column: 1 / -1;
+    position:relative;
+    background: linear-gradient(120deg, var(--deep) 0%, var(--deep2) 60%, #146e73 100%);
+    color:#eaf7f5;
+    padding: 22px 28px 20px;
+    overflow:hidden;
+  }
+  header.hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(circle at 12% 30%, rgba(127,209,196,0.18) 0, transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(127,209,196,0.12) 0, transparent 40%);
+    pointer-events:none;
+  }
+  .hero-inner{position:relative; display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .hero-title{display:flex; align-items:center; gap:14px;}
+  .hero-title h1{
+    font-size:22px; margin:0; letter-spacing:.02em; font-weight:700;
+  }
+  .hero-title .eyebrow{
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ripple); font-weight:600;
+  }
+  .hero-sub{font-size:13px; color:#bcded9; max-width:520px; line-height:1.5; margin-top:4px;}
+  .device-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(127,209,196,0.35);
+    border-radius:999px; padding:6px 14px; font-size:12px; color:#eaf7f5; white-space:nowrap;
+  }
+  .device-chip b{color:var(--ripple); font-weight:700;}
+
+  /* ---- sidebar ---- */
+  aside.panel{
+    background:var(--surface);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  .filters{
+    padding:16px 18px 10px;
+    border-bottom:1px solid var(--line);
+    background:var(--card);
+  }
+  .filters .row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .filter-btn{
+    flex:1; min-width:90px;
+    border:1px solid var(--line); background:#fff; border-radius:10px;
+    padding:8px 10px; font-size:12.5px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; gap:6px; justify-content:center;
+    color:var(--ink-soft); transition: all .15s ease;
+  }
+  .filter-btn .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+  .filter-btn[data-status="ok"] .dot{background:var(--ok);}
+  .filter-btn[data-status="maybe"] .dot{background:var(--maybe);}
+  .filter-btn[data-status="no"] .dot{background:var(--no);}
+  .filter-btn.active[data-status="ok"]{background:var(--ok-bg); border-color:var(--ok); color:var(--ok);}
+  .filter-btn.active[data-status="maybe"]{background:var(--maybe-bg); border-color:var(--maybe); color:var(--maybe);}
+  .filter-btn.active[data-status="no"]{background:var(--no-bg); border-color:var(--no); color:var(--no);}
+  .filter-btn:not(.active){opacity:.55;}
+
+  .search-box{position:relative;}
+  .search-box input{
+    width:100%; padding:9px 12px 9px 34px; border-radius:10px; border:1px solid var(--line);
+    font-size:13px; background:#fff; color:var(--ink);
+  }
+  .search-box::before{
+    content:"検"; position:absolute; left:11px; top:50%; transform:translateY(-50%);
+    font-size:11px; color:var(--ink-soft); font-weight:700;
+  }
+
+  .list-wrap{flex:1; overflow-y:auto; padding: 6px 10px 20px;}
+  .area-label{
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);
+    padding: 14px 8px 6px; font-weight:700;
+  }
+  .card{
+    background:var(--card); border:1px solid var(--line); border-left-width:4px;
+    border-radius:10px; padding:10px 12px; margin:0 0 8px; cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .card:hover{transform: translateY(-1px); box-shadow: 0 4px 14px rgba(11,45,60,0.08);}
+  .card.status-ok{border-left-color:var(--ok);}
+  .card.status-maybe{border-left-color:var(--maybe);}
+  .card.status-no{border-left-color:var(--no);}
+  .card-top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start;}
+  .card-name{font-size:13.5px; font-weight:700; line-height:1.35;}
+  .badge{
+    flex:none; font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap;
+    letter-spacing:.02em;
+  }
+  .badge.status-ok{background:var(--ok-bg); color:var(--ok);}
+  .badge.status-maybe{background:var(--maybe-bg); color:var(--maybe);}
+  .badge.status-no{background:var(--no-bg); color:var(--no);}
+  .card-meta{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
+  .card-price{font-family:"SFMono-Regular",Consolas,monospace; font-size:11px; color:var(--ink-soft); margin-top:3px;}
+
+  /* ---- map ---- */
+  #map{width:100%; height:100%;}
+  .leaflet-popup-content-wrapper{border-radius:12px;}
+  .popup-inner{font-family:inherit; max-width:260px;}
+  .popup-inner .p-badge{
+    display:inline-block; font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; margin-bottom:6px;
+  }
+  .popup-inner .p-badge.status-ok{background:var(--ok-bg); color:var(--ok);}
+  .popup-inner .p-badge.status-maybe{background:var(--maybe-bg); color:var(--maybe);}
+  .popup-inner .p-badge.status-no{background:var(--no-bg); color:var(--no);}
+  .popup-inner h3{margin:0 0 4px; font-size:14.5px;}
+  .popup-inner .p-area{font-size:11px; color:var(--ink-soft); margin-bottom:6px;}
+  .popup-inner p{font-size:12px; line-height:1.5; margin:6px 0; color:var(--ink);}
+  .popup-inner .p-price{font-family:"SFMono-Regular",Consolas,monospace; font-size:11.5px; color:var(--deep2); margin:4px 0;}
+  .popup-inner a{font-size:11.5px; color:var(--deep2); font-weight:700;}
+
+  .legend-note{
+    padding:10px 18px 16px; font-size:11px; color:var(--ink-soft); border-top:1px solid var(--line); background:var(--card);
+    line-height:1.5;
+  }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:#c3d5d5; border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-title">
+          <span class="eyebrow">Kanto Public Pools</span>
+        </div>
+        <h1>水中イヤホンOKプールマップ</h1>
+        <div class="hero-sub">神奈川・東京の公営プール／指定管理プールを、水中イヤホンの持ち込み可否で色分け。骨伝導・完全防水・内蔵メモリ型（Shokz OpenSwim Pro等）の使用を想定して評価しています。</div>
+      </div>
+      <div class="device-chip">対象機種の目安 &nbsp;<b>骨伝導 ・ IP68防水 ・ 内蔵メモリ再生</b></div>
+    </div>
+  </header>
+
+  <aside class="panel">
+    <div class="filters">
+      <div class="row">
+        <button class="filter-btn active" data-status="ok"><span class="dot"></span>確定OK</button>
+        <button class="filter-btn active" data-status="maybe"><span class="dot"></span>要確認</button>
+        <button class="filter-btn active" data-status="no"><span class="dot"></span>NG</button>
+      </div>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="施設名・エリアで検索" />
+      </div>
+    </div>
+    <div class="list-wrap" id="listWrap"></div>
+    <div class="legend-note">
+      情報は2026年8月時点のウェブ調査に基づく参考情報です。ルールは施設側の運用変更により随時変わるため、来館前に必ず各施設の公式サイトまたは電話で最新情報をご確認ください。
+    </div>
+  </aside>
+
+  <div id="map"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const STATUS_META = {
+  ok:    { label: "確定OK",   color: "#1f9e78" },
+  maybe: { label: "要確認候補", color: "#c98a1c" },
+  no:    { label: "NG",       color: "#b3473f" },
+};
+
+const POOLS = [
+  {
+    id:"kameido", name:"亀戸スポーツセンター", area:"江東区（東京）", status:"ok",
+    lat:35.700169, lng:139.836519, price:"450円",
+    note:"骨伝導・完全防水・本体内蔵記憶媒体の音楽再生機器はOK。受付で事前申告し、入場後に監視員へ提示。",
+    url:"https://www.koto-hsc.or.jp/news/2024/detail_3295.html"
+  },
+  {
+    id:"ariake", name:"有明スポーツセンター", area:"江東区（東京）", status:"ok",
+    lat:35.633113, lng:139.783718, price:"450円",
+    note:"江東区健康スポーツ公社の管轄5施設に共通の解禁ルール（骨伝導・完全防水・内蔵メモリ限定）。",
+    url:"https://www.koto-hsc.or.jp/news/2024/detail_3295.html"
+  },
+  {
+    id:"higashisuna", name:"東砂スポーツセンター", area:"江東区（東京）", status:"ok",
+    lat:35.679187, lng:139.839444, price:"450円",
+    note:"江東区健康スポーツ公社の管轄5施設に共通の解禁ルール（骨伝導・完全防水・内蔵メモリ限定）。",
+    url:"https://www.koto-hsc.or.jp/news/2024/detail_3295.html"
+  },
+  {
+    id:"fukagawakita", name:"深川北スポーツセンター", area:"江東区（東京）", status:"ok",
+    lat:35.676910, lng:139.805158, price:"450円",
+    note:"江東区健康スポーツ公社の管轄5施設に共通の解禁ルール（骨伝導・完全防水・内蔵メモリ限定）。",
+    url:"https://www.koto-hsc.or.jp/news/2024/detail_3295.html"
+  },
+  {
+    id:"chigasaki-tac", name:"TAC茅ヶ崎市屋内温水プール", area:"茅ヶ崎市（神奈川）", status:"ok",
+    lat:35.348042, lng:139.373813, price:"410円（65歳以上310円）",
+    note:"2024年1月15日より水中イヤホン使用可。会員登録不要・都度払い、公営プール。運営：東京アスレティッククラブ（TAC）。",
+    url:"https://www.chigasaki-pool.com/info/1865/"
+  },
+  {
+    id:"central-shinkawasaki", name:"セントラルフィットネスクラブ 新川崎", area:"川崎市幸区（神奈川・自社クラブ）", status:"ok",
+    lat:35.547872, lng:139.675318, price:"ビジター 約1,000〜1,650円/日",
+    note:"公式FAQ：頭部装着・コード内包型の水中音楽プレーヤーは遊泳可能。会員制クラブ（公営受託ではない自社運営）。",
+    url:"https://faq-central.dga.jp/faq_detail.html?id=365"
+  },
+  {
+    id:"central-yokohama", name:"セントラルスイムクラブ横浜", area:"横浜市神奈川区（神奈川・自社クラブ）", status:"ok",
+    lat:35.489383, lng:139.606565, price:"ビジター 約1,000〜1,650円/日",
+    note:"セントラルスポーツ自社クラブ共通方針：頭部装着・コード内包型プレーヤーは遊泳可能。",
+    url:"https://faq-central.dga.jp/faq_detail.html?id=365"
+  },
+  {
+    id:"central-nagatsuta", name:"セントラルウェルネスクラブ 長津田みなみ台", area:"横浜市緑区（神奈川・自社クラブ）", status:"ok",
+    lat:35.522487, lng:139.498198, price:"ビジター 約1,000〜1,650円/日",
+    note:"セントラルスポーツ自社クラブ共通方針：頭部装着・コード内包型プレーヤーは遊泳可能。",
+    url:"https://faq-central.dga.jp/faq_detail.html?id=365"
+  },
+  {
+    id:"kamiigusa", name:"TAC杉並区上井草スポーツセンター", area:"杉並区（東京）", status:"maybe",
+    lat:35.723759, lng:139.602426, price:"250円/1時間",
+    note:"禁止物リストに電子機器・イヤホンの明記なし（腕時計等の貴金属のみ明記）。同一運営会社（TAC）が茅ヶ崎で解禁実績あり。来館前に電話確認推奨。",
+    url:"https://www.suginami-ttm.com/kamiigusa/personal/"
+  },
+  {
+    id:"nissan-waterpark", name:"日産ウォーターパーク", area:"横浜市港北区（神奈川）", status:"maybe",
+    lat:35.510257, lng:139.607458, price:"約500円/時間",
+    note:"持込禁止物に携帯電話の明記はあるが、イヤホン単体の記載なし。電話確認推奨。",
+    url:"https://www.nissan-stadium.jp/shinyoko-park/waterpark/about.php"
+  },
+  {
+    id:"shinjuku-sc", name:"新宿区立新宿スポーツセンター", area:"新宿区（東京）", status:"maybe",
+    lat:35.706997, lng:139.705439, price:"未確認",
+    note:"TAC受託施設。茅ヶ崎での解禁実績がある同一運営会社のため要確認。同区内の新宿コズミックセンター（別施設）はNG確定。",
+    url:"https://www.shinjuku-sportscenter.jp/facilities/index.php"
+  },
+  {
+    id:"ozenji", name:"ヨネッティー王禅寺", area:"川崎市麻生区（神奈川）", status:"no",
+    lat:35.593696, lng:139.524733, price:"約410円",
+    note:"水中オーディオプレーヤーなど音楽再生機器の持ち込み・使用を明確に禁止。運営：東急スポーツオアシス。",
+    url:"https://www.sportsoasis.co.jp/sh41/post-shitei/"
+  },
+  {
+    id:"kawasaki-plaza", name:"川崎市民プラザ温水プール", area:"川崎市高津区（神奈川）", status:"no",
+    lat:35.584909, lng:139.610552, price:"未確認",
+    note:"携帯電話や電子機器（ポータブルオーディオ含む）の持ち込みを明確に禁止。施設は2026年度末で利用終了予定。",
+    url:"https://www.kawasaki-shiminplaza.jp/sisetu/pool/"
+  },
+  {
+    id:"yokohama-intl", name:"横浜国際プール", area:"横浜市都筑区（神奈川）", status:"no",
+    lat:35.564130, lng:139.594462, price:"未確認",
+    note:"携帯電話・タブレット端末の持込み不可。運営：横浜市スポーツ協会。",
+    url:"https://yokohama-sport.jp/waterarena/mainpool/"
+  },
+  {
+    id:"ebara", name:"荏原文化センター温水プール", area:"品川区（東京）", status:"no",
+    lat:35.612147, lng:139.710683, price:"350円",
+    note:"装身具や電気機器（スマートフォン、イヤホン等）の持ち込みを明確に禁止。スマートウォッチのみ例外。",
+    url:"https://www.city.shinagawa.tokyo.jp/PC/shisetsu/shisetsu-bunka/shisetsu-bunka-pool/hpg000012789.html"
+  },
+  {
+    id:"minato-sc", name:"港区スポーツセンター", area:"港区（東京）", status:"no",
+    lat:35.646626, lng:139.751797, price:"250円",
+    note:"電子機器（スマートフォン、音楽機器等）の持ち込み・使用を明確に禁止。",
+    url:"https://minatoku-sports.com/facility/pool/"
+  },
+  {
+    id:"shinjuku-cosmic", name:"新宿コズミックセンター", area:"新宿区（東京）", status:"no",
+    lat:35.704984, lng:139.708082, price:"400円",
+    note:"音楽プレーヤーの持ち込みを明確に禁止。",
+    url:"https://www.regasu-shinjuku.or.jp/?p=1673"
+  },
+  {
+    id:"adachi", name:"スイムスポーツセンター（うきうき館）他 足立区立温水プール", area:"足立区（東京）", status:"no",
+    lat:35.803440, lng:139.797292, price:"550円",
+    note:"電気機器の持ち込みを明確に禁止。",
+    url:"https://www.city.adachi.tokyo.jp/sports/chiikibunka/sports/onsuipool.html"
+  },
+  {
+    id:"tef-gym", name:"東京体育館", area:"渋谷区（東京・都立）", status:"no",
+    lat:35.679736, lng:139.712405, price:"700円",
+    note:"携帯電話、イヤホン、ラジオ等の電化製品の持込みを明確に禁止。セントラルスポーツが共同管理者の一つでも都のルールが優先される実例。",
+    url:"https://www.tef.or.jp/tac/pool/"
+  },
+  {
+    id:"tef-aquatics", name:"東京アクアティクスセンター", area:"江東区（東京・都立）", status:"no",
+    lat:35.651409, lng:139.815065, price:"1,000円",
+    note:"携帯電話、イヤホン、ラジオ等の電化製品の持込みを明確に禁止。同じ江東区でも江東区健康スポーツ公社管轄施設とは別運営でNG。",
+    url:"https://www.tef.or.jp/tac/pool/"
+  },
+  {
+    id:"kita-panorama", name:"パノラマプール十条台", area:"北区（東京）", status:"no",
+    lat:35.758673, lng:139.730403, price:"500円",
+    note:"区がイヤホンの持込み禁止を継続する方針を明言。",
+    url:"https://www.city.kita.lg.jp/city-information/feedback/1014175/1014199/1014227/1014229.html"
+  },
+  {
+    id:"ota-yaguchi", name:"矢口区民センター温水プール", area:"大田区（東京）", status:"no",
+    lat:35.562064, lng:139.690260, price:"440円",
+    note:"プール場内（プールサイド含む）への電子機器の持ち込みを明確に禁止。",
+    url:"https://www.city.ota.tokyo.jp/shisetsu/sports/pool/yagichikumin_c_onsui/poolguide_yaguchi.html"
+  },
+  {
+    id:"pref-arena2", name:"神奈川県立スポーツアリーナ2", area:"藤沢市（神奈川県営）", status:"no",
+    lat:35.359746, lng:139.475694, price:"未確認",
+    note:"電子機器（腕時計、携帯、イヤホン等）の持ち込みを明確に禁止。",
+    url:"https://www.pref.kanagawa.jp/docs/ui6/1/facility/ar2/pool-general-use.html"
+  },
+  {
+    id:"atsugi-ogino", name:"荻野運動公園プール", area:"厚木市（神奈川）", status:"no",
+    lat:35.481472, lng:139.321029, price:"500円",
+    note:"持込許可物のホワイトリスト方式（バスタオル・ゴーグル・ビート板・浮き輪のみ）でイヤホンは対象外。",
+    url:"https://www.city.atsugi.kanagawa.jp/soshiki/koenryokuchika/6/4/1254.html"
+  },
+  {
+    id:"yokosuka-sub", name:"横須賀サブアリーナ温水プール", area:"横須賀市（神奈川）", status:"no",
+    lat:35.266899, lng:139.664160, price:"未確認",
+    note:"ヘルスケア機能付きウェアラブル端末（手首装着型）のみ例外的に許可。頭部装着のイヤホンは対象外。",
+    url:"https://www.yokosuka-arena.jp/pooluse.html"
+  },
+  {
+    id:"arakawa-sc", name:"荒川総合スポーツセンター", area:"荒川区（東京）", status:"no",
+    lat:35.735796, lng:139.791207, price:"600円",
+    note:"手首装着型ウェアラブルデバイスのみ許可。頭部装着のイヤホンは対象外。",
+    url:"https://www.city.arakawa.tokyo.jp/a017/s-centerriyou.html"
+  },
+];
+
+// ---- map init ----
+const map = L.map('map', { zoomControl: true }).setView([35.55, 139.65], 10);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+function makeIcon(status){
+  const color = STATUS_META[status].color;
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>`,
+    iconSize: [18,18],
+    iconAnchor: [9,9],
+    popupAnchor: [0,-10]
+  });
+}
+
+const markers = {};
+POOLS.forEach(p => {
+  const marker = L.marker([p.lat, p.lng], { icon: makeIcon(p.status) });
+  const meta = STATUS_META[p.status];
+  marker.bindPopup(`
+    <div class="popup-inner">
+      <span class="p-badge status-${p.status}">${meta.label}</span>
+      <h3>${p.name}</h3>
+      <div class="p-area">${p.area}</div>
+      <div class="p-price">${p.price}</div>
+      <p>${p.note}</p>
+      <a href="${p.url}" target="_blank" rel="noopener">出典を見る →</a>
+    </div>
+  `);
+  marker.addTo(map);
+  markers[p.id] = marker;
+});
+
+// ---- sidebar list ----
+const listWrap = document.getElementById('listWrap');
+const AREA_ORDER = ["ok","maybe","no"];
+const AREA_HEADS = { ok:"確定OK", maybe:"要確認候補", no:"NG" };
+
+function renderList(filterStatuses, query){
+  listWrap.innerHTML = '';
+  AREA_ORDER.forEach(status => {
+    if(!filterStatuses.has(status)) return;
+    const items = POOLS.filter(p => p.status === status &&
+      (p.name.includes(query) || p.area.includes(query)));
+    if(items.length === 0) return;
+    const head = document.createElement('div');
+    head.className = 'area-label';
+    head.textContent = `${AREA_HEADS[status]}（${items.length}）`;
+    listWrap.appendChild(head);
+    items.forEach(p => {
+      const card = document.createElement('div');
+      card.className = `card status-${p.status}`;
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-name">${p.name}</div>
+          <div class="badge status-${p.status}">${STATUS_META[p.status].label}</div>
+        </div>
+        <div class="card-meta">${p.area}</div>
+        <div class="card-price">${p.price}</div>
+      `;
+      card.addEventListener('click', () => {
+        map.setView([p.lat, p.lng], 14, { animate: true });
+        markers[p.id].openPopup();
+      });
+      listWrap.appendChild(card);
+    });
+  });
+}
+
+// ---- filters ----
+const activeStatuses = new Set(['ok','maybe','no']);
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const status = btn.dataset.status;
+    if(activeStatuses.has(status)){
+      activeStatuses.delete(status);
+      btn.classList.remove('active');
+    } else {
+      activeStatuses.add(status);
+      btn.classList.add('active');
+    }
+    applyFilters();
+  });
+});
+
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', applyFilters);
+
+function applyFilters(){
+  const query = searchInput.value.trim();
+  renderList(activeStatuses, query);
+  POOLS.forEach(p => {
+    const show = activeStatuses.has(p.status) &&
+      (p.name.includes(query) || p.area.includes(query));
+    const marker = markers[p.id];
+    if(show){ if(!map.hasLayer(marker)) marker.addTo(map); }
+    else { if(map.hasLayer(marker)) map.removeLayer(marker); }
+  });
+}
+
+renderList(activeStatuses, '');
+</script>
+</body>
+</html>
